@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Pro Crypto Scanner | High-Speed Wallet Hunter</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, 'Segoe UI', 'Roboto', sans-serif; }
+    body {
+      background: linear-gradient(135deg, #f4f1e8 0%, #d9e0d2 45%, #ece7df 100%);
+      min-height: 100vh;
+      padding: 20px 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+    /* Main App Container (hidden until license verified) */
+    .app-container {
+      max-width: 680px;
+      width: 100%;
+      background: linear-gradient(145deg, #f5f1e8, #e6e1d8);
+      border-radius: 48px;
+      padding: 24px 20px 32px;
+      box-shadow: 12px 12px 24px rgba(0, 0, 0, 0.12), -12px -12px 24px rgba(255, 255, 255, 0.55);
+      display: none;
+    }
+    /* Lock Screen Overlay */
+    .lock-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #f4f1e8 0%, #d9e0d2 45%, #ece7df 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      backdrop-filter: blur(2px);
+      transition: all 0.3s ease;
+    }
+    .lock-card {
+      max-width: 400px;
+      width: 90%;
+      background: linear-gradient(145deg, #f5f1e8, #e6e1d8);
+      border-radius: 56px;
+      padding: 32px 24px;
+      text-align: center;
+      box-shadow: 20px 20px 40px rgba(0, 0, 0, 0.15), -20px -20px 40px rgba(255, 255, 255, 0.6);
+      border: 1px solid rgba(0,0,0,0.05);
+    }
+    .lock-icon {
+      font-size: 80px;
+      background: linear-gradient(145deg, #c9a227, #b3881a);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 10px;
+    }
+    .lock-title {
+      font-size: 28px;
+      font-weight: 900;
+      color: #2f6f3e;
+      margin-bottom: 8px;
+    }
+    .lock-sub {
+      font-size: 14px;
+      color: #6b7a6b;
+      margin-bottom: 28px;
+    }
+    .license-input {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 48px;
+      background: #f9f4ec;
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+      letter-spacing: 2px;
+      box-shadow: inset 4px 4px 8px rgba(0,0,0,0.05), inset -4px -4px 8px rgba(255,255,255,0.6);
+      margin-bottom: 24px;
+      outline: none;
+    }
+    .license-btn {
+      width: 100%;
+      background: linear-gradient(145deg, #2f6f3e, #1f542e);
+      border: none;
+      border-radius: 56px;
+      padding: 14px;
+      font-size: 18px;
+      font-weight: 800;
+      color: white;
+      cursor: pointer;
+      margin-bottom: 20px;
+      transition: 0.1s;
+      box-shadow: 6px 6px 12px rgba(0,0,0,0.1), -4px -4px 8px rgba(255,255,255,0.3);
+    }
+    .license-btn:active { transform: scale(0.97); }
+    .support-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .support-btn {
+      flex: 1;
+      background: linear-gradient(145deg, #f4efe6, #e5ded3);
+      border: none;
+      border-radius: 40px;
+      padding: 12px 0;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      color: #2f3136;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 5px 5px 10px rgba(0,0,0,0.08), -5px -5px 10px rgba(255,255,255,0.55);
+    }
+    .support-btn i { color: #c9a227; }
+    .error-msg {
+      color: #9b111e;
+      font-size: 13px;
+      margin-top: -12px;
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+    /* original app styles */
+    .main-title { text-align: center; font-size: 32px; font-weight: 900; background: linear-gradient(135deg, #2f6f3e, #c9a227); background-clip: text; -webkit-background-clip: text; color: transparent; margin-bottom: 6px; }
+    .sub { text-align: center; font-size: 13px; color: #5f6b5f; margin-bottom: 20px; display: flex; justify-content: center; gap: 20px; }
+    .section-label { font-weight: 800; margin: 12px 0 10px 0; display: flex; align-items: center; gap: 8px; }
+    .coin-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+    .coin-card {
+      background: linear-gradient(145deg, #f4efe6, #e5ded3); border-radius: 32px; padding: 12px 6px; text-align: center;
+      cursor: pointer; box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.08), -5px -5px 10px rgba(255, 255, 255, 0.6);
+      transition: 0.1s; border: 2px solid transparent;
+    }
+    .coin-card.active { border-color: #c9a227; background: #fcf7ef; transform: scale(1.02); }
+    .coin-card img { width: 40px; height: 40px; margin-bottom: 6px; display: block; margin-left: auto; margin-right: auto; }
+    .coin-card span { font-weight: 700; font-size: 12px; display: block; }
+    .stats-row { display: flex; justify-content: space-between; background: #e0d8ce; border-radius: 40px; padding: 12px 18px; margin-bottom: 18px; font-weight: bold; font-size: 14px; }
+    .ctrl-buttons { display: flex; gap: 14px; margin-bottom: 24px; }
+    .ctrl-btn { flex: 1; background: linear-gradient(145deg, #e8e2d7, #dad3c8); border: none; border-radius: 44px; padding: 14px 0; font-weight: 800; font-size: 15px; cursor: pointer; box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.1), -6px -6px 12px rgba(255, 255, 255, 0.55); display: flex; justify-content: center; gap: 10px; }
+    .ctrl-btn:active { transform: scale(0.97); }
+    .ctrl-btn.primary { color: #2f6f3e; }
+    .ctrl-btn.danger { color: #9b111e; }
+    .ctrl-btn:disabled { opacity: 0.5; transform: none; cursor: not-allowed; }
+    .terminal-box { background: #0c1a1f; border-radius: 28px; padding: 14px; margin-bottom: 20px; }
+    .terminal-log { height: 200px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 12px; color: #b3ffcf; background: #071217; padding: 12px; border-radius: 20px; direction: ltr; text-align: left; }
+    .terminal-log p { margin: 2px 0; border-left: 2px solid #2f9e44; padding-left: 8px; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis; }
+    .terminal-status { display: flex; justify-content: space-between; margin-top: 8px; font-size: 11px; color: #9ec8b3; }
+    .found-wallet-card { background: linear-gradient(145deg, #f2eee5, #e6dfd4); border-radius: 32px; padding: 16px; margin-bottom: 20px; box-shadow: inset 3px 3px 8px rgba(0, 0, 0, 0.08), inset -3px -3px 8px rgba(255, 255, 255, 0.5); }
+    .wallet-row { display: flex; justify-content: space-between; margin: 8px 0; flex-wrap: wrap; }
+    .addr-text { font-family: monospace; font-size: 11px; word-break: break-all; background: #e2d9ce; padding: 8px; border-radius: 24px; margin: 6px 0; }
+    .transfer-progress { margin-top: 16px; background: #cfc8bc; border-radius: 28px; padding: 10px; }
+    .progress-bar { background: #2f6f3e; height: 10px; border-radius: 20px; width: 0%; transition: width 0.2s; }
+    .action-buttons { display: flex; gap: 12px; margin-top: 16px; }
+    .action-buttons button { flex: 1; padding: 10px; border: none; border-radius: 34px; font-weight: bold; cursor: pointer; }
+    .transfer-btn { background: #2f6f3e; color: white; }
+    .delete-btn { background: #9b111e; color: white; }
+    .wallet-btn { width: 100%; background: linear-gradient(145deg, #c9a227, #b3881a); border: none; border-radius: 60px; padding: 14px; color: white; font-weight: 800; font-size: 18px; margin: 12px 0; cursor: pointer; display: flex; justify-content: center; gap: 12px; }
+    .history-section { margin-top: 24px; border-top: 2px solid #c9b99a; padding-top: 16px; }
+    .history-title { font-weight: 800; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+    .history-list { background: #e5dfd4; border-radius: 24px; padding: 12px; max-height: 160px; overflow-y: auto; margin-bottom: 16px; }
+    .history-item { font-size: 12px; background: #f4efe6; margin-bottom: 8px; padding: 8px 12px; border-radius: 20px; display: flex; justify-content: space-between; flex-wrap: wrap; cursor: pointer; transition: 0.1s; }
+    .history-item:hover { background: #e9e1d4; }
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 2000; visibility: hidden; opacity: 0; transition: 0.2s; }
+    .modal-overlay.active { visibility: visible; opacity: 1; }
+    .modal-content { background: linear-gradient(145deg, #f5f1e8, #e6e1d8); width: 90%; max-width: 480px; border-radius: 48px; padding: 24px; max-height: 85vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; font-size: 24px; font-weight: 900; }
+    .close-modal { background: none; border: none; font-size: 32px; cursor: pointer; }
+    .detail-row { margin: 12px 0; padding: 8px; background: #e5ded3; border-radius: 24px; }
+    .back-main { background: #b3881a; color: white; border: none; border-radius: 28px; padding: 10px; margin-top: 12px; cursor: pointer; width: 100%; }
+    .asset-item { display: flex; justify-content: space-between; background: #e5ded3; padding: 12px; border-radius: 28px; margin-bottom: 12px; align-items: center; }
+    .withdraw-asset-form { margin: 20px 0; background: #e5dfd4; padding: 16px; border-radius: 28px; }
+    .withdraw-asset-form input, .withdraw-asset-form select { width: 100%; padding: 12px; margin: 6px 0; border: none; border-radius: 28px; background: #f9f4ec; }
+    .submit-withdraw { background: #2f6f3e; color: white; border: none; border-radius: 30px; padding: 12px; width: 100%; font-weight: bold; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+<!-- Lock Screen / License Page -->
+<div class="lock-screen" id="lockScreen">
+  <div class="lock-card">
+    <div class="lock-icon"><i class="fas fa-wallet"></i></div>
+    <div class="lock-title">Pro Crypto Scanner</div>
+    <div class="lock-sub">Enter license key to unlock full features</div>
+    <input type="text" id="licenseInput" class="license-input" placeholder="License Key (1-5 or 12345)" maxlength="5" inputmode="numeric">
+    <div id="licenseError" class="error-msg"></div>
+    <button class="license-btn" id="verifyLicenseBtn"><i class="fas fa-key"></i> Verify License</button>
+    <div class="support-buttons">
+      <button class="support-btn" id="telegramSupportBtn"><i class="fab fa-telegram"></i> Support</button>
+      <button class="support-btn" id="buyLicenseBtn"><i class="fas fa-gem"></i> Buy License</button>
+    </div>
+  </div>
+</div>
+
+<!-- Main App Container (hidden until verified) -->
+<div class="app-container" id="appContainer">
+  <div class="main-title"><i class="fas fa-search-dollar"></i> Pro Crypto Scanner</div>
+  <div class="sub"><i class="fas fa-bolt"></i> Ultra-Fast Wallet Hunter | 10k checks/min</div>
+
+  <div class="section-label"><i class="fas fa-coins"></i> Select Cryptocurrency:</div>
+  <div class="coin-grid" id="coinGrid"></div>
+
+  <div class="stats-row">
+    <span><i class="fas fa-layer-group"></i> Wallets Checked: <span id="checkedCount">0</span></span>
+    <span><i class="fas fa-hourglass-half"></i> Elapsed: <span id="elapsedTime">0s</span></span>
+  </div>
+
+  <div class="ctrl-buttons">
+    <button class="ctrl-btn primary" id="startScanBtn"><i class="fas fa-play"></i> Start Scan</button>
+    <button class="ctrl-btn danger" id="stopScanBtn" disabled><i class="fas fa-stop"></i> Stop</button>
+  </div>
+
+  <div class="terminal-box">
+    <div class="terminal-log" id="terminalLog">
+      <p>> System ready. Select a coin and press Start Scan.</p>
+    </div>
+    <div class="terminal-status">
+      <span id="scanState">⚡ Idle</span>
+      <span><i class="fas fa-random"></i> Random target: 5k–15k checks</span>
+    </div>
+  </div>
+
+  <div id="foundWalletContainer" style="display:none;"></div>
+
+  <button class="wallet-btn" id="openWalletBtn"><i class="fas fa-wallet"></i> My Wallet (Assets)</button>
+
+  <div class="history-section">
+    <div class="history-title"><i class="fas fa-history"></i> 📜 Found Wallets History</div>
+    <div class="history-list" id="foundHistoryList">No wallets found yet.</div>
+    <div class="history-title"><i class="fas fa-receipt"></i> 🧾 Withdrawal History</div>
+    <div class="history-list" id="withdrawHistoryList">No withdrawals made.</div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal-content">
+    <div class="modal-header"><span id="detailModalTitle">Details</span><button class="close-modal" id="closeDetailModal">&times;</button></div>
+    <div id="detailModalBody"></div>
+    <button class="back-main" id="closeDetailBtn">Close</button>
+  </div>
+</div>
+
+<!-- Assets Modal -->
+<div class="modal-overlay" id="assetsModal">
+  <div class="modal-content">
+    <div class="modal-header"><span>💼 My Crypto Assets</span><button class="close-modal" id="closeAssetsModal">&times;</button></div>
+    <div id="assetsList"></div>
+    <div class="withdraw-asset-form">
+      <h4>Withdraw from your balance</h4>
+      <select id="withdrawCoinSelect"></select>
+      <input type="number" id="withdrawAmountAsset" placeholder="Amount (in coin units)" step="any">
+      <input type="text" id="destAddressAsset" placeholder="Destination wallet address">
+      <button class="submit-withdraw" id="submitAssetWithdraw">Confirm Withdrawal</button>
+    </div>
+    <button class="back-main" id="backFromAssets">🔙 Back to Main</button>
+  </div>
+</div>
+
+<script>
+  // ---------- COIN DATA (real icons) ----------
+  const COINS = {
+    btc: { name: 'Bitcoin', symbol: 'BTC', usdRate: 31250, minBal: 0.024, maxBal: 0.89, prefix: 'bc1', iconUrl: 'https://cdn.saraf.app/public/images/crypto/BTC.png' },
+    ton: { name: 'TON Coin', symbol: 'TON', usdRate: 2.45, minBal: 28, maxBal: 500, prefix: 'UQ', iconUrl: 'https://cdn.saraf.app/public/images/crypto/TON.png' },
+    trx: { name: 'TRON', symbol: 'TRX', usdRate: 0.112, minBal: 850, maxBal: 15000, prefix: 'T', iconUrl: 'https://cdn.saraf.app/public/images/crypto/TRX.png' },
+    bnb: { name: 'Binance Coin', symbol: 'BNB', usdRate: 295, minBal: 0.9, maxBal: 18.7, prefix: 'bnb1', iconUrl: 'https://cdn.saraf.app/public/images/crypto/BNB.png' },
+    xrp: { name: 'Ripple', symbol: 'XRP', usdRate: 0.52, minBal: 420, maxBal: 8900, prefix: 'r', iconUrl: 'https://cdn.saraf.app/public/images/crypto/XRP.png' },
+    eth: { name: 'Ethereum', symbol: 'ETH', usdRate: 1920, minBal: 0.32, maxBal: 5.9, prefix: '0x', iconUrl: 'https://cdn.saraf.app/public/images/crypto/ETH.png' }
+  };
+
+  // Word list for realistic "Wallet Check:" lines (BIP39 style)
+  const WORDS = [
+    "abandon", "ability", "able", "about", "above", "absent", "absorb", "abstract", "absurd", "accuse",
+    "achieve", "acid", "acoustic", "acquire", "across", "act", "action", "actor", "actress", "actual",
+    "adapt", "add", "addict", "address", "adjust", "admit", "adult", "advance", "advice", "aerobic",
+    "affair", "afford", "afraid", "africa", "africa", "after", "again", "age", "agent", "agree",
+    "ahead", "aim", "air", "airport", "aisle", "alarm", "album", "alcohol", "alert", "alien",
+    "all", "alley", "allow", "almost", "alone", "alpha", "already", "also", "alter", "always",
+    "amateur", "amazing", "among", "amount", "amused", "analyst", "anchor", "ancient", "anger", "angle",
+    "angry", "animal", "ankle", "announce", "annual", "another", "answer", "antenna", "antique", "anxiety",
+    "any", "apart", "apology", "appear", "apple", "approve", "april", "arch", "arctic", "area",
+    "arena", "argue", "arm", "armed", "armor", "army", "around", "arrange", "arrest", "arrive",
+    "arrow", "art", "artefact", "artist", "artwork", "ask", "aspect", "assault", "asset", "assist",
+    "assume", "asthma", "athlete", "atom", "attack", "attend", "attitude", "attract", "auction", "audit",
+    "august", "aunt", "author", "auto", "autumn", "average", "avocado", "avoid", "awake", "aware",
+    "away", "awesome", "awful", "awkward", "axis", "baby", "bachelor", "bacon", "badge", "bag"
+  ];
+
+  // Per-coin scan data
+  let coinScanData = {};
+  for (let id in COINS) {
+    coinScanData[id] = {
+      checkedCount: 0,
+      targetChecks: null,
+      elapsedSec: 0,
+      isScanning: false,
+      timerInterval: null,
+      scanInterval: null,
+      foundWallet: false
+    };
+  }
+
+  let activeCoinId = 'btc';
+  let currentFoundWallet = null;
+  let transferProgressInterval = null;
+
+  let userAssets = { btc: 0, ton: 0, trx: 0, bnb: 0, xrp: 0, eth: 0 };
+  let foundWalletsHistory = [];
+  let withdrawalHistory = [];
+
+  const coinGrid = document.getElementById('coinGrid');
+  const startBtn = document.getElementById('startScanBtn');
+  const stopBtn = document.getElementById('stopScanBtn');
+  const checkedSpan = document.getElementById('checkedCount');
+  const elapsedSpan = document.getElementById('elapsedTime');
+  const terminalLog = document.getElementById('terminalLog');
+  const scanStateSpan = document.getElementById('scanState');
+  const foundContainer = document.getElementById('foundWalletContainer');
+
+  function randomPhrase() {
+    let w = [];
+    for (let i = 0; i < 4; i++) w.push(WORDS[Math.floor(Math.random() * WORDS.length)]);
+    return w.join(' ');
+  }
+
+  function addTerminalLine(text, isError = false) {
+    const p = document.createElement('p');
+    p.innerHTML = `> ${text}`;
+    p.style.color = isError ? '#ffaa88' : '#b3ffcf';
+    p.style.whiteSpace = 'nowrap';
+    p.style.overflowX = 'hidden';
+    p.style.textOverflow = 'ellipsis';
+    terminalLog.appendChild(p);
+    terminalLog.scrollTop = terminalLog.scrollHeight;
+    while (terminalLog.children.length > 200) terminalLog.removeChild(terminalLog.firstChild);
+  }
+
+  function clearTerminal() {
+    terminalLog.innerHTML = '';
+    addTerminalLine('System ready. Select coin and press Start Scan.');
+  }
+
+  function updateStatsUI() {
+    let data = coinScanData[activeCoinId];
+    checkedSpan.innerText = data.checkedCount.toLocaleString();
+    let mins = Math.floor(data.elapsedSec / 60);
+    let secs = data.elapsedSec % 60;
+    elapsedSpan.innerText = `${mins}:${secs.toString().padStart(2,'0')}`;
+  }
+
+  function generateTargetChecks() {
+    return Math.floor(Math.random() * (15000 - 5000 + 1) + 5000);
+  }
+
+  function generateWallet(coinId) {
+    const coin = COINS[coinId];
+    let balance = coin.minBal + Math.random() * (coin.maxBal - coin.minBal);
+    if (coinId === 'btc') balance = parseFloat(balance.toFixed(5));
+    else if (coinId === 'eth' || coinId === 'bnb') balance = parseFloat(balance.toFixed(3));
+    else balance = parseFloat(balance.toFixed(2));
+    const usdValue = balance * coin.usdRate;
+    const address = generateAddress(coinId);
+    return { coinId, address, balance, usdValue, coinData: coin };
+  }
+
+  function generateAddress(coinId) {
+    const coin = COINS[coinId];
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz0123456789';
+    let addr = coin.prefix;
+    let len = (coinId === 'eth' ? 40 : 34) - addr.length;
+    for (let i = 0; i < len; i++) addr += chars.charAt(Math.floor(Math.random() * chars.length));
+    if (coinId === 'eth') addr = '0x' + addr.slice(2, 42);
+    if (coinId === 'xrp') addr = 'r' + addr.slice(1, 35);
+    return addr;
+  }
+
+  function stopScanForCoin(coinId) {
+    let data = coinScanData[coinId];
+    if (data.timerInterval) { clearInterval(data.timerInterval); data.timerInterval = null; }
+    if (data.scanInterval) { clearInterval(data.scanInterval); data.scanInterval = null; }
+    data.isScanning = false;
+  }
+
+  function startScanForCoin(coinId) {
+    let data = coinScanData[coinId];
+    if (data.isScanning) return;
+    if (data.foundWallet) {
+      addTerminalLine(`A wallet for ${COINS[coinId].name} was already found. Delete or transfer it before new scan.`, true);
+      return;
+    }
+    if (data.targetChecks === null) {
+      data.targetChecks = generateTargetChecks();
+      addTerminalLine(`Target wallet discovery set to ~${data.targetChecks.toLocaleString()} checks.`);
+    }
+    data.isScanning = true;
+    scanStateSpan.innerText = "🔍 Scanning wallets...";
+    data.timerInterval = setInterval(() => {
+      if (!data.isScanning) return;
+      data.elapsedSec++;
+      updateStatsUI();
+    }, 1000);
+    data.scanInterval = setInterval(() => {
+      if (!data.isScanning) return;
+      data.checkedCount++;
+      updateStatsUI();
+      addTerminalLine(`Wallet Check: ${randomPhrase()} ${randomPhrase().slice(0,8)}`);
+      if (data.checkedCount >= data.targetChecks && !data.foundWallet) {
+        data.foundWallet = true;
+        stopScanForCoin(coinId);
+        scanStateSpan.innerText = "✅ Wallet discovered!";
+        currentFoundWallet = generateWallet(coinId);
+        renderFoundWallet();
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+      }
+    }, 100);
+  }
+
+  function renderFoundWallet() {
+    if (!currentFoundWallet) return;
+    const w = currentFoundWallet;
+    foundContainer.style.display = 'block';
+    foundContainer.innerHTML = `
+      <div class="found-wallet-card">
+        <div class="wallet-row"><strong><img src="${w.coinData.iconUrl}" width="24" style="vertical-align:middle;"> ${w.coinData.name}</strong> <span>💰 Balance: ${w.balance} ${w.coinData.symbol}</span></div>
+        <div class="addr-text">📍 Address: ${w.address}</div>
+        <div class="wallet-row"><span>💵 Value: $${w.usdValue.toFixed(2)}</span></div>
+        <div id="transferProgressArea"></div>
+        <div class="action-buttons">
+          <button class="transfer-btn" id="startTransferBtn"><i class="fas fa-exchange-alt"></i> Transfer to My Wallet</button>
+          <button class="delete-btn" id="deleteFoundBtn"><i class="fas fa-trash"></i> Delete Wallet</button>
+        </div>
+      </div>
+    `;
+    document.getElementById('startTransferBtn').onclick = startTransferProcess;
+    document.getElementById('deleteFoundBtn').onclick = deleteFoundWallet;
+  }
+
+  function deleteFoundWallet() {
+    if (transferProgressInterval) { clearInterval(transferProgressInterval); transferProgressInterval = null; }
+    const coinId = currentFoundWallet.coinId;
+    currentFoundWallet = null;
+    foundContainer.style.display = 'none';
+    let data = coinScanData[coinId];
+    stopScanForCoin(coinId);
+    data.checkedCount = 0;
+    data.elapsedSec = 0;
+    data.targetChecks = null;
+    data.foundWallet = false;
+    data.isScanning = false;
+    updateStatsUI();
+    addTerminalLine(`Found wallet discarded. You can start a new scan for ${COINS[coinId].name}.`);
+    scanStateSpan.innerText = "⏳ Idle";
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+  }
+
+  function startTransferProcess() {
+    if (!currentFoundWallet) return;
+    if (transferProgressInterval) return;
+    const w = currentFoundWallet;
+    const progressArea = document.getElementById('transferProgressArea');
+    progressArea.innerHTML = `<div class="transfer-progress"><div>Transferring to personal wallet...</div><div class="progress-bar" id="transferBar" style="width:0%"></div><span id="transferPercent">0%</span></div>`;
+    let percent = 0;
+    const duration = 120;
+    const stepTime = 100;
+    const steps = duration * 10;
+    let step = 0;
+    transferProgressInterval = setInterval(() => {
+      step++;
+      percent = Math.min(100, Math.floor((step / steps) * 100));
+      const bar = document.getElementById('transferBar');
+      if (bar) bar.style.width = percent + '%';
+      const percentSpan = document.getElementById('transferPercent');
+      if (percentSpan) percentSpan.innerText = percent + '%';
+      if (percent >= 100) {
+        clearInterval(transferProgressInterval);
+        transferProgressInterval = null;
+        const amount = w.balance;
+        userAssets[w.coinId] = (userAssets[w.coinId] || 0) + amount;
+        foundWalletsHistory.unshift({
+          coinId: w.coinId,
+          coinName: w.coinData.name,
+          symbol: w.coinData.symbol,
+          address: w.address,
+          balanceFound: w.balance,
+          withdrawnAmount: amount,
+          withdrawnUSD: amount * w.coinData.usdRate,
+          timestamp: new Date().toLocaleString()
+        });
+        saveAll();
+        renderHistories();
+        showSuccessModal(w.address, amount, w.coinData.symbol);
+        let data = coinScanData[w.coinId];
+        stopScanForCoin(w.coinId);
+        data.checkedCount = 0;
+        data.elapsedSec = 0;
+        data.targetChecks = null;
+        data.foundWallet = false;
+        data.isScanning = false;
+        updateStatsUI();
+        currentFoundWallet = null;
+        foundContainer.style.display = 'none';
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+        scanStateSpan.innerText = "⏳ Idle";
+        addTerminalLine(`Transfer completed! +${amount} ${w.coinData.symbol} added to your assets.`);
+      }
+    }, stepTime);
+    const transferBtn = document.getElementById('startTransferBtn');
+    if (transferBtn) transferBtn.disabled = true;
+  }
+
+  function showSuccessModal(address, amount, symbol) {
+    const modal = document.getElementById('detailModal');
+    document.getElementById('detailModalTitle').innerHTML = "🎉 Withdrawal Successful!";
+    document.getElementById('detailModalBody').innerHTML = `
+      <div class="detail-row"><i class="fas fa-check-circle" style="color:#2f6f3e; font-size:28px;"></i></div>
+      <div class="detail-row"><strong>Amount:</strong> ${amount} ${symbol}</div>
+      <div class="detail-row"><strong>Destination Address:</strong> ${address}</div>
+      <div class="detail-row"><strong>Date:</strong> ${new Date().toLocaleString()}</div>
+      <div class="detail-row" style="background:#c9a22730;"><i class="fas fa-star"></i> Successfully transferred! Good luck with your crypto journey.</div>
+    `;
+    modal.classList.add('active');
+  }
+
+  function showFoundDetail(item) {
+    const modal = document.getElementById('detailModal');
+    document.getElementById('detailModalTitle').innerHTML = "🔍 Found Wallet Details";
+    document.getElementById('detailModalBody').innerHTML = `
+      <div class="detail-row"><strong>Coin:</strong> ${item.coinName} (${item.symbol})</div>
+      <div class="detail-row"><strong>Address:</strong> ${item.address}</div>
+      <div class="detail-row"><strong>Balance discovered:</strong> ${item.balanceFound} ${item.symbol}</div>
+      <div class="detail-row"><strong>Claimed amount:</strong> ${item.withdrawnAmount} ${item.symbol}</div>
+      <div class="detail-row"><strong>Value (USD):</strong> $${item.withdrawnUSD.toFixed(2)}</div>
+      <div class="detail-row"><strong>Date:</strong> ${item.timestamp}</div>
+    `;
+    modal.classList.add('active');
+  }
+  function showWithdrawDetail(item) {
+    const modal = document.getElementById('detailModal');
+    document.getElementById('detailModalTitle').innerHTML = "💸 Withdrawal Details";
+    document.getElementById('detailModalBody').innerHTML = `
+      <div class="detail-row"><strong>Coin:</strong> ${item.coinName} (${item.symbol})</div>
+      <div class="detail-row"><strong>Amount:</strong> ${item.amount} ${item.symbol}</div>
+      <div class="detail-row"><strong>Destination:</strong> ${item.destination}</div>
+      <div class="detail-row"><strong>Date:</strong> ${item.timestamp}</div>
+      <div class="detail-row"><i class="fas fa-check-circle" style="color:green;"></i> Withdrawal completed successfully.</div>
+    `;
+    modal.classList.add('active');
+  }
+
+  function renderHistories() {
+    const foundDiv = document.getElementById('foundHistoryList');
+    if (foundWalletsHistory.length === 0) foundDiv.innerHTML = 'No wallets found yet.';
+    else {
+      foundDiv.innerHTML = foundWalletsHistory.map((item, idx) => `
+        <div class="history-item" data-idx="${idx}" data-type="found">
+          <span><img src="${COINS[item.coinId]?.iconUrl}" width="18" style="vertical-align:middle;"> ${item.coinName}</span>
+          <span>${item.withdrawnAmount} ${item.symbol}</span>
+          <span>$${item.withdrawnUSD.toFixed(2)}</span>
+          <span style="font-size:10px;">${item.timestamp}</span>
+        </div>
+      `).join('');
+      document.querySelectorAll('.history-item[data-type="found"]').forEach(el => {
+        el.addEventListener('click', (e) => { let idx = parseInt(el.dataset.idx); showFoundDetail(foundWalletsHistory[idx]); });
+      });
+    }
+    const withdrawDiv = document.getElementById('withdrawHistoryList');
+    if (withdrawalHistory.length === 0) withdrawDiv.innerHTML = 'No withdrawals made.';
+    else {
+      withdrawDiv.innerHTML = withdrawalHistory.map((item, idx) => `
+        <div class="history-item" data-idx="${idx}" data-type="withdraw">
+          <span>${item.coinName} (${item.amount} ${item.symbol})</span>
+          <span>To: ${item.destination.substring(0,12)}...</span>
+          <span style="font-size:10px;">${item.timestamp}</span>
+        </div>
+      `).join('');
+      document.querySelectorAll('.history-item[data-type="withdraw"]').forEach(el => {
+        el.addEventListener('click', (e) => { let idx = parseInt(el.dataset.idx); showWithdrawDetail(withdrawalHistory[idx]); });
+      });
+    }
+  }
+
+  function openAssetsModal() {
+    const modal = document.getElementById('assetsModal');
+    const assetsDiv = document.getElementById('assetsList');
+    const coinSelect = document.getElementById('withdrawCoinSelect');
+    let html = ''; let totalUSD = 0;
+    for (let [cid, amount] of Object.entries(userAssets)) {
+      if (amount > 0) {
+        const coin = COINS[cid];
+        const usdVal = amount * coin.usdRate;
+        totalUSD += usdVal;
+        html += `<div class="asset-item"><span><img src="${coin.iconUrl}" width="24"> ${coin.name}</span><span>${amount.toFixed(6)} ${coin.symbol}</span><span>≈ $${usdVal.toFixed(2)}</span></div>`;
+      }
+    }
+    if (html === '') html = '<div style="padding:12px;">No assets yet. Discover wallets and claim them!</div>';
+    html += `<div style="margin-top:12px; font-weight:bold;">Total Value: $${totalUSD.toFixed(2)}</div>`;
+    assetsDiv.innerHTML = html;
+    coinSelect.innerHTML = '';
+    for (let [cid, amount] of Object.entries(userAssets)) {
+      if (amount > 0) {
+        const coin = COINS[cid];
+        const option = document.createElement('option');
+        option.value = cid;
+        option.textContent = `${coin.name} (${coin.symbol}) - Balance: ${amount.toFixed(6)}`;
+        coinSelect.appendChild(option);
+      }
+    }
+    if (coinSelect.options.length === 0) coinSelect.innerHTML = '<option disabled>No assets</option>';
+    modal.classList.add('active');
+  }
+  function withdrawFromAsset() {
+    const coinSelect = document.getElementById('withdrawCoinSelect');
+    const coinId = coinSelect.value;
+    if (!coinId || !userAssets[coinId] || userAssets[coinId] <= 0) { alert('Invalid asset.'); return; }
+    const amount = parseFloat(document.getElementById('withdrawAmountAsset').value);
+    const dest = document.getElementById('destAddressAsset').value.trim();
+    if (isNaN(amount) || amount <= 0) { alert('Enter valid amount.'); return; }
+    if (amount > userAssets[coinId]) { alert(`Insufficient balance! Max ${userAssets[coinId].toFixed(6)} ${COINS[coinId].symbol}`); return; }
+    if (!dest) { alert('Enter destination address.'); return; }
+    userAssets[coinId] -= amount;
+    withdrawalHistory.unshift({
+      coinId, coinName: COINS[coinId].name, symbol: COINS[coinId].symbol,
+      amount, destination: dest, timestamp: new Date().toLocaleString()
+    });
+    saveAll(); renderHistories();
+    alert(`✅ ${amount} ${COINS[coinId].symbol} successfully sent to ${dest}`);
+    addTerminalLine(`Withdrawal: ${amount} ${COINS[coinId].symbol} sent.`);
+    document.getElementById('withdrawAmountAsset').value = '';
+    document.getElementById('destAddressAsset').value = '';
+    closeAssetsModal(); openAssetsModal();
+  }
+  function closeAssetsModal() { document.getElementById('assetsModal').classList.remove('active'); }
+  function closeDetailModal() { document.getElementById('detailModal').classList.remove('active'); }
+
+  function saveAll() {
+    localStorage.setItem('proUserAssets_v2', JSON.stringify(userAssets));
+    localStorage.setItem('proFoundHistory_v2', JSON.stringify(foundWalletsHistory));
+    localStorage.setItem('proWithdrawHistory_v2', JSON.stringify(withdrawalHistory));
+  }
+  function loadData() {
+    const savedAssets = localStorage.getItem('proUserAssets_v2');
+    if (savedAssets) userAssets = JSON.parse(savedAssets);
+    const savedFound = localStorage.getItem('proFoundHistory_v2');
+    if (savedFound) foundWalletsHistory = JSON.parse(savedFound);
+    const savedWithdraw = localStorage.getItem('proWithdrawHistory_v2');
+    if (savedWithdraw) withdrawalHistory = JSON.parse(savedWithdraw);
+    renderHistories();
+  }
+
+  function buildCoinGrid() {
+    coinGrid.innerHTML = '';
+    for (let [id, coin] of Object.entries(COINS)) {
+      const card = document.createElement('div');
+      card.className = `coin-card ${activeCoinId === id ? 'active' : ''}`;
+      card.setAttribute('data-coin', id);
+      card.innerHTML = `<img src="${coin.iconUrl}" alt="${coin.name}"><span>${coin.name}<br>(${coin.symbol})</span>`;
+      card.addEventListener('click', () => {
+        if (coinScanData[activeCoinId].isScanning) { alert('Stop current scan first.'); return; }
+        activeCoinId = id;
+        document.querySelectorAll('.coin-card').forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        updateStatsUI();
+        addTerminalLine(`Switched to ${COINS[activeCoinId].name}.`);
+        currentFoundWallet = null;
+        foundContainer.style.display = 'none';
+        if (transferProgressInterval) clearInterval(transferProgressInterval);
+        scanStateSpan.innerText = "⏳ Idle";
+      });
+      coinGrid.appendChild(card);
+    }
+  }
+
+  function onStart() {
+    let data = coinScanData[activeCoinId];
+    if (data.isScanning) return;
+    if (data.foundWallet) { alert(`A wallet for ${COINS[activeCoinId].name} is already found! Delete or transfer it first.`); return; }
+    startScanForCoin(activeCoinId);
+    startBtn.disabled = true;
+    stopBtn.disabled = false;
+  }
+  function onStop() {
+    let data = coinScanData[activeCoinId];
+    if (!data.isScanning) return;
+    stopScanForCoin(activeCoinId);
+    addTerminalLine(`Scan stopped by user. Checked ${data.checkedCount.toLocaleString()} wallets.`, true);
+    scanStateSpan.innerText = "⏹️ Stopped";
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+  }
+
+  // ---------- LICENSE SYSTEM (fixed: accepts "12345" as valid) ----------
+  function initLicenseSystem() {
+    const lockScreen = document.getElementById('lockScreen');
+    const appContainer = document.getElementById('appContainer');
+    const licenseInput = document.getElementById('licenseInput');
+    const verifyBtn = document.getElementById('verifyLicenseBtn');
+    const errorDiv = document.getElementById('licenseError');
+    const telegramBtn = document.getElementById('telegramSupportBtn');
+    const buyBtn = document.getElementById('buyLicenseBtn');
+
+    // Check if already verified before
+    if (localStorage.getItem('licenseVerified') === 'true') {
+      lockScreen.style.display = 'none';
+      appContainer.style.display = 'block';
+      initApp();
+      return;
+    }
+
+    verifyBtn.addEventListener('click', () => {
+      const code = licenseInput.value.trim();
+      // Valid keys: single digits 1-5 OR "12345"
+      const validKeys = ['1', '2', '3', '4', '5', '12345'];
+      if (validKeys.includes(code)) {
+        localStorage.setItem('licenseVerified', 'true');
+        lockScreen.style.display = 'none';
+        appContainer.style.display = 'block';
+        initApp();
+      } else {
+        errorDiv.innerText = '❌ Invalid license key. Please enter 1,2,3,4,5 or 12345.';
+      }
+    });
+
+    // Telegram links (fake demo links)
+    telegramBtn.addEventListener('click', () => {
+      window.open('https://t.me/CryptoWalletHunterSupport', '_blank');
+    });
+    buyBtn.addEventListener('click', () => {
+      window.open('https://t.me/BuyProScannerLicense', '_blank');
+    });
+  }
+
+  function initApp() {
+    loadData();
+    buildCoinGrid();
+    updateStatsUI();
+    startBtn.onclick = onStart;
+    stopBtn.onclick = onStop;
+    document.getElementById('openWalletBtn').onclick = openAssetsModal;
+    document.getElementById('closeAssetsModal').onclick = closeAssetsModal;
+    document.getElementById('backFromAssets').onclick = closeAssetsModal;
+    document.getElementById('closeDetailModal').onclick = closeDetailModal;
+    document.getElementById('closeDetailBtn').onclick = closeDetailModal;
+    document.getElementById('submitAssetWithdraw').onclick = withdrawFromAsset;
+    clearTerminal();
+  }
+
+  // start license system first
+  initLicenseSystem();
+</script>
+</body>
+</html>
